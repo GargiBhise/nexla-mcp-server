@@ -102,3 +102,43 @@ def _build_faiss_index(embeddings: np.ndarray) -> faiss.IndexFlatL2:
     index.add(embeddings)
 
     return index
+
+
+def ingest_documents(data_dir: str) -> tuple:
+    """
+    Main entry point. Finds all PDFs, parses, chunks, embeds, and builds FAISS index.
+    Returns (faiss_index, chunks_list, metadata_dict).
+    """
+    # Step 1: Find all PDF files
+    pdf_paths = _find_pdfs(data_dir)
+    print(f"Found {len(pdf_paths)} PDFs")
+
+    all_chunks = []
+    all_metadata = {}
+
+    for pdf_path in pdf_paths:
+        filename = os.path.basename(pdf_path)
+        print(f"Processing: {filename}")
+
+        # Step 2: Extract metadata for this document
+        all_metadata[filename] = extract_metadata(pdf_path, filename)
+
+        # Step 3: Parse pages from the PDF
+        pages = _parse_pdf(pdf_path)
+
+        # Step 4: Chunk each page's text
+        for page_data in pages:
+            chunks = _chunk_text(page_data["text"], filename, page_data["page"])
+            all_chunks.extend(chunks)
+
+    print(f"Total chunks: {len(all_chunks)}")
+
+    # Step 5: Generate embeddings for all chunks
+    embeddings = _embed_chunks(all_chunks)
+
+    # Step 6: Build the FAISS index
+    index = _build_faiss_index(embeddings)
+
+    print(f"FAISS index built with {index.ntotal} vectors")
+
+    return index, all_chunks, all_metadata
