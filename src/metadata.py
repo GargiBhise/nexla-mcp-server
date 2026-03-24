@@ -49,7 +49,21 @@ def _extract_title(pdf) -> str:
 
 def _extract_authors(pdf) -> list[str]:
     """Extract authors from the first page (lines between title and abstract)."""
-    pass
+    first_page = pdf.pages[0]
+    text = first_page.extract_text() or ""
+    lines = [line.strip() for line in text.split("\n") if line.strip()]
+
+    authors = []
+    # Check lines 2-6 after the title line for author names
+    for line in lines[1:6]:
+        # Stop if we hit a known section keyword
+        if any(keyword in line.lower() for keyword in ["abstract", "introduction", "@", "university", "department"]):
+            break
+        # Skip lines with digits (likely affiliations or years)
+        if not any(char.isdigit() for char in line):
+            authors.append(line)
+
+    return authors
 
 
 def _count_references(full_text: str) -> int:
