@@ -49,3 +49,25 @@ def _parse_pdf(pdf_path: str) -> list[dict]:
                 pages.append({"page": page_num, "text": text.strip()})
 
     return pages
+
+
+def _chunk_text(text: str, filename: str, page: int) -> list[dict]:
+    """Split text into overlapping chunks with source metadata."""
+    chunks = []
+    start = 0
+    while start < len(text):
+        # Slice the text from start to start + chunk size
+        end = start + CHUNK_SIZE
+        chunk_text = text[start:end]
+
+        # Attach source metadata to each chunk
+        chunks.append({
+            "text": chunk_text,
+            "filename": filename,
+            "page": page,
+        })
+
+        # Move forward by chunk size minus overlap
+        start += CHUNK_SIZE - CHUNK_OVERLAP
+
+    return chunks
