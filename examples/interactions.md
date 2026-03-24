@@ -44,7 +44,26 @@ Sample Q&A interactions from the MCP server's `query_documents` tool, showing qu
 
 **Question:** What techniques do the papers use to handle language-specific challenges in NLP tasks?
 
-**Why this is cross-document:** The retriever pulls chunks from multiple PDFs (e.g., P19-1164.pdf on gender bias in translation, W18-4401.pdf on aggression detection across languages, P19-1598.pdf on knowledge-grounded language models) and the answerer synthesizes a single response citing multiple sources.
+**Answer:** Several techniques are used to handle language-specific challenges in NLP tasks:
+
+**Cross-lingual Word Representations:** The forest and trees system uses pre-trained English and Hindi fasttext word embeddings combined with pre-computed SVD matrices that align Hindi and English vectors into a single space, enabling the same model to be used for both languages.
+
+**Language-Independent Representations:** UAEMex-UAPT1 uses word model representations that are language independent, allowing the same approach to be used for both English and Hindi tasks.
+
+**Multilingual Word Vectors:** One approach involves learning word vectors for 157 languages to handle multiple language processing tasks.
+
+**Contextualized Representations:** Deep contextualized word representations are used, with ELMo introducing a novel mechanism to learn combinations of different layers in language models.
+
+**Data Augmentation:** External datasets are used to augment training data, such as incorporating external toxicity datasets for aggression identification tasks.
+
+**Sources:**
+- D19-1539.pdf, Page 9
+- D19-1539.pdf, Page 2
+- P19-1598.pdf, Page 9
+- W18-4401.pdf, Page 6
+- W18-5713.pdf, Page 1
+
+**Why this is cross-document:** The retriever pulled chunks from 4 different PDFs and the answerer synthesized a single response citing all sources.
 
 ---
 
@@ -73,22 +92,18 @@ Sample Q&A interactions from the MCP server's `query_documents` tool, showing qu
 
 ## 7. get_document_metadata Tool
 
-**Input:** `filename = "W18-5713.pdf"`
+**Input:** `filename = "D19-1539.pdf"`
 
 **Output:**
 ```json
 {
-  "filename": "W18-5713.pdf",
-  "title": "Retrieve and Refine:",
-  "authors": [
-    "Improved Sequence Generation Models For Dialogue",
-    "JasonWeston,EmilyDinanandAlexanderH.Miller",
-    "FacebookAIResearch"
-  ],
-  "page_count": 6,
-  "word_count": 2370,
-  "reference_count": 12
+  "filename": "D19-1539.pdf",
+  "title": "Cloze-driven Pretraining of Self-attention Networks",
+  "authors": ["AlexeiBaevski,SergeyEdunov,YinhanLiu,LukeZettlemoyer,MichaelAuli"],
+  "page_count": 10,
+  "word_count": 4234,
+  "reference_count": 35
 }
 ```
 
-**Note:** Title and author extraction is best-effort using heuristics on the first page. The title is truncated because the subtitle wraps to the next line, and authors are not cleanly separated due to PDF text extraction limitations. This is a known limitation of text-based metadata parsing.
+**Note:** Title and author extraction is best-effort using heuristics on PDF first-page text. Author names may not separate cleanly depending on PDF layout.

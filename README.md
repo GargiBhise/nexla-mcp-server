@@ -9,22 +9,35 @@ An MCP (Model Context Protocol) server that ingests PDF documents, indexes their
 ### Prerequisites
 
 - Python 3.10+
-- Conda (recommended) or pip
 - Anthropic API key ([console.anthropic.com](https://console.anthropic.com/))
 
-### Step 1: Clone and install
+### Step 1: Clone and create virtual environment
 
 ```bash
 git clone https://github.com/GargiBhise/nexla-mcp-server.git
 cd nexla-mcp-server
-conda activate          # if using Conda
+
+# Create and activate a virtual environment
+python -m venv venv
+source venv/bin/activate        # macOS/Linux
+venv\Scripts\activate           # Windows
+```
+
+### Step 2: Install dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
-### Step 2: Configure environment
+This installs FastMCP, pdfplumber, sentence-transformers, FAISS, Anthropic SDK, NLTK, and python-dotenv. The sentence-transformers model (~90MB) downloads automatically on first run.
+
+### Step 3: Configure environment
+
+Create a `.env` file from the template:
 
 ```bash
-cp .env.example .env
+cp .env.example .env            # macOS/Linux
+copy .env.example .env          # Windows
 ```
 
 Edit `.env` and add your Anthropic API key:
@@ -34,20 +47,49 @@ ANTHROPIC_API_KEY=your_key_here
 ANTHROPIC_MODEL=claude-sonnet-4-20250514
 ```
 
-### Step 3: Start the MCP server
+### Step 4: Run the evaluation (quickest way to see it work)
+
+```bash
+python -m eval.eval
+```
+
+This ingests all 5 PDFs, runs 30 ground-truth Q&A pairs against the system, and reports accuracy by question type. On first run, NLTK will automatically download the stopwords corpus (requires internet). You should see output like:
+
+```
+Ingesting documents...
+Found 5 PDFs
+Processing: P19-1598.pdf
+...
+Loaded 30 Q&A pairs
+
+[1/30] [FAIL] (text-only) What is the primary challenge addressed by...
+  Expected: The primary challenge addressed is incorporating factual...
+  Actual:   The primary challenge addressed by the introduction of...
+  Match:    8/19 content words (42%)
+...
+--- Evaluation Summary ---
+text-only: 2/6 (33.3%)
+multimodal-t: 6/14 (42.9%)
+multimodal-f: 1/2 (50.0%)
+meta-data: 0/8 (0.0%)
+```
+
+### Step 5: Start the MCP server
 
 ```bash
 python -m src.server
 ```
 
-The server ingests all PDFs from `data/` at startup (takes a few seconds), then listens on stdio for MCP tool calls. You should see:
+The server ingests all PDFs at startup, then listens on stdio for MCP tool calls. You should see:
 
 ```
 Starting document ingestion...
 Server ready. 138 chunks indexed from 5 documents.
 ```
 
-### Step 4 (Optional): Connect to Claude Desktop
+> **Note:** The server communicates via stdio (JSON-RPC), so it won't show a prompt. It's designed to be called by an MCP client like Claude Desktop, not used interactively in the terminal. Press `Ctrl+C` to stop.
+
+### Step 6 (Optional): Connect to Claude Desktop
 
 To use the server interactively via Claude Desktop, add the following to your config (`claude_desktop_config.json`):
 
@@ -62,14 +104,6 @@ To use the server interactively via Claude Desktop, add the following to your co
   }
 }
 ```
-
-### Step 5: Run the evaluation harness
-
-```bash
-python -m eval.eval
-```
-
-This runs 30 ground-truth Q&A pairs against the system and reports accuracy by question type. On first run, NLTK will automatically download the stopwords corpus (requires internet).
 
 ---
 
@@ -234,20 +268,16 @@ Returns structured metadata for a specific document, including title, authors, a
 
 ```json
 {
-  "filename": "W18-5713.pdf",
-  "title": "Retrieve and Refine:",
-  "authors": [
-    "Improved Sequence Generation Models For Dialogue",
-    "JasonWeston,EmilyDinanandAlexanderH.Miller",
-    "FacebookAIResearch"
-  ],
-  "page_count": 6,
-  "word_count": 2370,
-  "reference_count": 12
+  "filename": "D19-1539.pdf",
+  "title": "Cloze-driven Pretraining of Self-attention Networks",
+  "authors": ["AlexeiBaevski,SergeyEdunov,YinhanLiu,LukeZettlemoyer,MichaelAuli"],
+  "page_count": 10,
+  "word_count": 4234,
+  "reference_count": 35
 }
 ```
 
-> **Note:** Title and author extraction uses heuristics on PDF first-page text. Results are best-effort — multi-line titles may truncate and author names may not separate cleanly.
+> **Note:** Title and author extraction uses heuristics on PDF first-page text. Results are best-effort — multi-line titles may truncate and author names may not separate cleanly depending on PDF layout.
 
 If the filename is not found, returns:
 
@@ -323,6 +353,20 @@ This project hit real-world constraints that required practical problem-solving 
 | Eval false positives | 50% word overlap too lenient | Added NLTK stop word filtering + refusal detection |
 
 Each pivot was documented as a trade-off decision, not hidden. The final system uses the best tool for each job given the actual constraints — not the theoretically ideal choice.
+
+### Where I Leaned on AI vs. Overrode It
+
+**Leaned on AI:**
+- Architecture planning and trade-off analysis (ChromaDB vs FAISS, embedding model selection)
+- Debugging environment-specific issues (Windows build tools, API configuration)
+- Writing boilerplate code (FAISS index setup, FastMCP tool decorators, CLI scripts)
+- Analyzing eval results — Claude reviewed all 30 Q&A outputs and identified false positives faster than manual inspection
+
+**Overrode or corrected AI:**
+- Claude tried to write entire files at once — I enforced one-function-at-a-time commits
+- Claude suggested manual stop word lists — I insisted on using NLTK's programmatic solution
+- Claude initially proposed committing files one-by-one instead of logical groupings — I restructured the commit strategy
+- Claude's metadata example output was fabricated — I ran the code and replaced it with real output
 
 ### What I Learned
 

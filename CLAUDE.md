@@ -107,16 +107,15 @@ src/ingest.py        ✅ parse, chunk, embed, FAISS index
 src/retriever.py     ✅ FAISS similarity search
 src/answerer.py      ✅ Claude API with RAG prompt (model from .env)
 src/server.py        ✅ FastMCP + 3 tools + startup ingestion
-eval/eval.py         ✅ accuracy by question type (50% word overlap match)
+eval/eval.py         ✅ accuracy by question type (NLTK stop words + refusal detection)
+examples/            ✅ interactions.md with 7 verified examples
 .env.example         ✅ ANTHROPIC_API_KEY + ANTHROPIC_MODEL
-requirements.txt     ✅ fastmcp, pdfplumber, sentence-transformers, faiss-cpu, anthropic, python-dotenv
+.gitignore           ✅ excludes .claude/, .env, assignment PDF
+requirements.txt     ✅ fastmcp, pdfplumber, sentence-transformers, faiss-cpu, anthropic, nltk, python-dotenv
+README.md            ✅ setup, architecture, tool docs, eval, vibe coding
 ```
 
-**Remaining:**
-- [x] Run full 30-question eval and record results
-- [x] Capture 3+ example interactions in examples/interactions.md
-- [x] Write README.md (setup, architecture, tools, limitations, vibe coding)
-- [ ] Commit and push all changes
+**All deliverables complete.**
 
 ---
 
@@ -146,23 +145,21 @@ meta-data:     0/8  (0.0%)
 - Index rebuilt at startup (persistence is production path)
 - Stateless — no conversation memory
 - Table parsing best-effort via pdfplumber
+- Metadata extraction (title/authors) is heuristic-based, imperfect on some PDF layouts
 - Eval word overlap can miss correct paraphrases or pass wrong-entity matches
+- All logging uses stderr to avoid corrupting MCP stdio transport
 
 ---
 
-## 10. Git Commit History (30 commits)
+## 10. Git Commit History
 
 No prefix format: `<action> <what> <context>`
 
-Latest: `switch answer generation from Anthropic API to local Ollama`
-Note: answerer.py has since been switched back to Claude API (uncommitted)
-
-**Uncommitted changes:**
-- answerer.py → Claude API with model from .env
-- requirements.txt → anthropic + python-dotenv instead of requests
-- .env.example → ANTHROPIC_API_KEY + ANTHROPIC_MODEL
-- eval/eval.py → word overlap matching + debug output
-- JSONL files → full 29 Q&A pairs restored
+Key commits (recent):
+- `fix stdout corruption in MCP stdio, improve metadata extraction, finalize documentation`
+- `add error handling for API calls and document ingestion`
+- `Add NLTK stop word filtering and refusal detection to eval`
+- `Switch from Ollama to Anthropic API`
 
 ---
 
