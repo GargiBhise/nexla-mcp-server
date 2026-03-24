@@ -36,20 +36,21 @@ def generate_answer(question: str, retrieved_chunks: list[dict]) -> dict:
     )
 
     # Send question + context to Claude
-    message = client.messages.create(
-        model=MODEL,
-        max_tokens=1024,
-        system=system_prompt,
-        messages=[
-            {
-                "role": "user",
-                "content": f"Context:\n{context}\n\nQuestion: {question}",
-            }
-        ],
-    )
-
-    # Extract the answer text
-    answer_text = message.content[0].text
+    try:
+        message = client.messages.create(
+            model=MODEL,
+            max_tokens=1024,
+            system=system_prompt,
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"Context:\n{context}\n\nQuestion: {question}",
+                }
+            ],
+        )
+        answer_text = message.content[0].text
+    except Exception as e:
+        return {"answer": f"Error generating answer: {e}", "sources": []}
 
     # Build source attribution list (deduplicated)
     sources = []

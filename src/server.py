@@ -20,8 +20,15 @@ def startup():
     """Run the ingestion pipeline and populate the global index, chunks, and metadata."""
     global index, chunks, metadata
     print("Starting document ingestion...")
-    index, chunks, metadata = ingest_documents(DATA_DIR)
-    print(f"Server ready. {len(chunks)} chunks indexed from {len(metadata)} documents.")
+    try:
+        index, chunks, metadata = ingest_documents(DATA_DIR)
+        print(f"Server ready. {len(chunks)} chunks indexed from {len(metadata)} documents.")
+    except FileNotFoundError:
+        print(f"Error: Data directory not found at {DATA_DIR}")
+        raise
+    except Exception as e:
+        print(f"Error during ingestion: {e}")
+        raise
 
 
 @mcp.tool()
