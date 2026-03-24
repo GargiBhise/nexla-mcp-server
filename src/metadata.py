@@ -40,7 +40,11 @@ def extract_metadata(pdf_path: str, filename: str) -> dict:
 
 def _extract_title(pdf) -> str:
     """Extract title from the first page (first non-empty line)."""
-    pass
+    first_page = pdf.pages[0]
+    text = first_page.extract_text() or ""
+    # Split into lines and return the first non-empty one as the title
+    lines = [line.strip() for line in text.split("\n") if line.strip()]
+    return lines[0] if lines else ""
 
 
 def _extract_authors(pdf) -> list[str]:
