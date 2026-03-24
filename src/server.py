@@ -51,3 +51,10 @@ def get_document_metadata(filename: str) -> dict:
     if filename not in metadata:
         return {"error": f"Document '{filename}' not found. Use list_documents() to see available files."}
     return metadata[filename]
+
+
+if __name__ == "__main__":
+    # Run ingestion before starting the server
+    startup()
+    # Start the MCP server using stdio transport
+    mcp.run(transport="stdio")
