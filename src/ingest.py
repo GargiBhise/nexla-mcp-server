@@ -88,3 +88,17 @@ def _embed_chunks(chunks: list[dict]) -> np.ndarray:
     embeddings = np.array([item.embedding for item in response.data], dtype=np.float32)
 
     return embeddings
+
+
+def _build_faiss_index(embeddings: np.ndarray) -> faiss.IndexFlatL2:
+    """Build a FAISS index from the embeddings array."""
+    # Get the dimension of the embeddings (1536 for text-embedding-3-small)
+    dimension = embeddings.shape[1]
+
+    # Create a flat L2 (Euclidean distance) index
+    index = faiss.IndexFlatL2(dimension)
+
+    # Add all embeddings to the index
+    index.add(embeddings)
+
+    return index
