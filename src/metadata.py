@@ -7,6 +7,7 @@ def extract_metadata(pdf_path: str, filename: str) -> dict:
     Extract document-level metadata from a PDF file.
     Returns title, authors, page count, word count, and reference count.
     """
+    # Default values in case extraction fails
     metadata = {
         "filename": filename,
         "title": "",
@@ -17,14 +18,19 @@ def extract_metadata(pdf_path: str, filename: str) -> dict:
     }
 
     with pdfplumber.open(pdf_path) as pdf:
+        # Total number of pages
         metadata["page_count"] = len(pdf.pages)
 
+        # Concatenate text from all pages
         full_text = ""
         for page in pdf.pages:
-            text = page.extract_text() or ""
+            text = page.extract_text() or ""  # fallback to empty string if page has no text
             full_text += text + "\n"
 
+        # Count total words across the document
         metadata["word_count"] = len(full_text.split())
+
+        # Delegate to helper functions for structured fields
         metadata["title"] = _extract_title(pdf)
         metadata["authors"] = _extract_authors(pdf)
         metadata["reference_count"] = _count_references(full_text)
