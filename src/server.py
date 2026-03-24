@@ -37,3 +37,9 @@ def query_documents(question: str) -> dict:
     result = generate_answer(question, retrieved)
 
     return result
+
+
+@mcp.tool()
+def list_documents() -> list[str]:
+    """Return the list of all indexed PDF filenames."""
+    return list(metadata.keys())
