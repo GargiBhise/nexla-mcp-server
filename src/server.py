@@ -43,3 +43,11 @@ def query_documents(question: str) -> dict:
 def list_documents() -> list[str]:
     """Return the list of all indexed PDF filenames."""
     return list(metadata.keys())
+
+
+@mcp.tool()
+def get_document_metadata(filename: str) -> dict:
+    """Return metadata for a specific document — title, authors, page count, word count, reference count."""
+    if filename not in metadata:
+        return {"error": f"Document '{filename}' not found. Use list_documents() to see available files."}
+    return metadata[filename]
