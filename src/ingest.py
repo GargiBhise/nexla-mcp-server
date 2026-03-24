@@ -3,16 +3,11 @@ import json
 import faiss
 import numpy as np
 import pdfplumber
-from openai import OpenAI
-from dotenv import load_dotenv
+from sentence_transformers import SentenceTransformer
 from src.metadata import extract_metadata
 
-load_dotenv()
-
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-# Embedding model to use
-EMBEDDING_MODEL = "text-embedding-3-small"
+# Local embedding model (no API key needed)
+embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 # Chunk size and overlap in characters
 CHUNK_SIZE = 1500
@@ -74,25 +69,19 @@ def _chunk_text(text: str, filename: str, page: int) -> list[dict]:
 
 
 def _embed_chunks(chunks: list[dict]) -> np.ndarray:
-    """Generate embeddings for all chunks using OpenAI API."""
+    """Generate embeddings for all chunks using sentence-transformers (local, no API key)."""
     # Extract just the text from each chunk
     texts = [chunk["text"] for chunk in chunks]
 
-    # Call OpenAI embeddings API in a single batch request
-    response = client.embeddings.create(
-        model=EMBEDDING_MODEL,
-        input=texts,
-    )
+    # Generate embeddings locally using all-MiniLM-L6-v2
+    embeddings = embedding_model.encode(texts, show_progress_bar=True)
 
-    # Convert response to numpy array for FAISS
-    embeddings = np.array([item.embedding for item in response.data], dtype=np.float32)
-
-    return embeddings
+    return np.array(embeddings, dtype=np.float32)
 
 
 def _build_faiss_index(embeddings: np.ndarray) -> faiss.IndexFlatL2:
     """Build a FAISS index from the embeddings array."""
-    # Get the dimension of the embeddings (1536 for text-embedding-3-small)
+    # Get the dimension of the embeddings (384 for all-MiniLM-L6-v2)
     dimension = embeddings.shape[1]
 
     # Create a flat L2 (Euclidean distance) index
