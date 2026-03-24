@@ -1,4 +1,5 @@
 import os
+import sys
 from fastmcp import FastMCP
 from src.ingest import ingest_documents
 from src.retriever import retrieve
@@ -19,15 +20,16 @@ metadata = {}
 def startup():
     """Run the ingestion pipeline and populate the global index, chunks, and metadata."""
     global index, chunks, metadata
-    print("Starting document ingestion...")
+    # Use stderr for logging — stdout is reserved for MCP JSON-RPC messages
+    print("Starting document ingestion...", file=sys.stderr)
     try:
         index, chunks, metadata = ingest_documents(DATA_DIR)
-        print(f"Server ready. {len(chunks)} chunks indexed from {len(metadata)} documents.")
+        print(f"Server ready. {len(chunks)} chunks indexed from {len(metadata)} documents.", file=sys.stderr)
     except FileNotFoundError:
-        print(f"Error: Data directory not found at {DATA_DIR}")
+        print(f"Error: Data directory not found at {DATA_DIR}", file=sys.stderr)
         raise
     except Exception as e:
-        print(f"Error during ingestion: {e}")
+        print(f"Error during ingestion: {e}", file=sys.stderr)
         raise
 
 

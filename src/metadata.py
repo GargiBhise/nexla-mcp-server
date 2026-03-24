@@ -38,13 +38,21 @@ def extract_metadata(pdf_path: str, filename: str) -> dict:
     return metadata
 
 
+def _clean_text(text: str) -> str:
+    """Remove unicode superscripts and special markers from extracted PDF text."""
+    # Strip common unicode superscript characters (*, †, §, ‡) and digit superscripts
+    cleaned = re.sub(r'[\u2217\u2020\u2021\u00a7\u00b9\u00b2\u00b3]', '', text)
+    # Remove standalone superscript-style digits that pdfplumber extracts (e.g. "1" after a name)
+    cleaned = re.sub(r'(?<=[a-zA-Z])\d{1,2}(?=\s|,|$)', '', cleaned)
+    return cleaned.strip()
+
+
 def _extract_title(pdf) -> str:
     """Extract title from the first page (first non-empty line)."""
     first_page = pdf.pages[0]
     text = first_page.extract_text() or ""
-    # Split into lines and return the first non-empty one as the title
     lines = [line.strip() for line in text.split("\n") if line.strip()]
-    return lines[0] if lines else ""
+    return _clean_text(lines[0]) if lines else ""
 
 
 def _extract_authors(pdf) -> list[str]:
@@ -53,15 +61,28 @@ def _extract_authors(pdf) -> list[str]:
     text = first_page.extract_text() or ""
     lines = [line.strip() for line in text.split("\n") if line.strip()]
 
+    # Skip lines that are affiliations, locations, or section headers
+    skip_keywords = ["abstract", "introduction", "university", "department",
+                     "institute", "@", "research", "menlo", "seattle", "CA", "WA"]
+
     authors = []
-    # Check lines 2-6 after the title line for author names
+    # Look at lines 2-6 (after title) for author names
     for line in lines[1:6]:
-        # Stop if we hit a known section keyword
-        if any(keyword in line.lower() for keyword in ["abstract", "introduction", "@", "university", "department"]):
+        lower = line.lower()
+        # Stop at section headers
+        if "abstract" in lower or "introduction" in lower:
             break
-        # Skip lines with digits (likely affiliations or years)
-        if not any(char.isdigit() for char in line):
-            authors.append(line)
+        # Skip affiliations and locations
+        if any(kw.lower() in lower for kw in skip_keywords):
+            continue
+        # Skip very short lines (stray numbers or symbols)
+        if len(line) < 5:
+            continue
+
+        # Clean unicode artifacts and add as author line
+        cleaned = _clean_text(line)
+        if cleaned:
+            authors.append(cleaned)
 
     return authors
 

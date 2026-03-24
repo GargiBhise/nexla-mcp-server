@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import faiss
 import numpy as np
@@ -100,14 +101,15 @@ def ingest_documents(data_dir: str) -> tuple:
     """
     # Step 1: Find all PDF files
     pdf_paths = _find_pdfs(data_dir)
-    print(f"Found {len(pdf_paths)} PDFs")
+    # Use stderr for logging — stdout is reserved for MCP JSON-RPC messages
+    print(f"Found {len(pdf_paths)} PDFs", file=sys.stderr)
 
     all_chunks = []
     all_metadata = {}
 
     for pdf_path in pdf_paths:
         filename = os.path.basename(pdf_path)
-        print(f"Processing: {filename}")
+        print(f"Processing: {filename}", file=sys.stderr)
 
         # Step 2: Extract metadata for this document
         all_metadata[filename] = extract_metadata(pdf_path, filename)
@@ -120,7 +122,7 @@ def ingest_documents(data_dir: str) -> tuple:
             chunks = _chunk_text(page_data["text"], filename, page_data["page"])
             all_chunks.extend(chunks)
 
-    print(f"Total chunks: {len(all_chunks)}")
+    print(f"Total chunks: {len(all_chunks)}", file=sys.stderr)
 
     # Step 5: Generate embeddings for all chunks
     embeddings = _embed_chunks(all_chunks)
@@ -128,6 +130,6 @@ def ingest_documents(data_dir: str) -> tuple:
     # Step 6: Build the FAISS index
     index = _build_faiss_index(embeddings)
 
-    print(f"FAISS index built with {index.ntotal} vectors")
+    print(f"FAISS index built with {index.ntotal} vectors", file=sys.stderr)
 
     return index, all_chunks, all_metadata
