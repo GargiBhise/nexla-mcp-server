@@ -68,4 +68,18 @@ def _extract_authors(pdf) -> list[str]:
 
 def _count_references(full_text: str) -> int:
     """Count the number of references in the references section."""
-    pass
+    # Find where the references section starts
+    ref_match = re.search(r'\bReferences\b', full_text, re.IGNORECASE)
+    if not ref_match:
+        return 0
+
+    ref_section = full_text[ref_match.start():]
+
+    # Count bracketed references e.g. [1], [2], [3]
+    bracketed = re.findall(r'^\[\d+\]', ref_section, re.MULTILINE)
+    if bracketed:
+        return len(bracketed)
+
+    # Fallback: count author-year style references e.g. "Smith, J"
+    author_year = re.findall(r'^[A-Z][a-z]+,?\s+[A-Z]', ref_section, re.MULTILINE)
+    return len(author_year)
