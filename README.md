@@ -99,7 +99,7 @@ To use the server interactively via Claude Desktop, add the following to your co
     "nexla-doc-qa": {
       "command": "python",
       "args": ["-m", "src.server"],
-      "cwd": "/path/to/nexla-mcp-server"
+      "cwd": "/path/to/FDE-AI-Take-Home-GargiBhise"
     }
   }
 }

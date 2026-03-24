@@ -1,4 +1,4 @@
-# CLAUDE.md — Project Context for nexla-mcp-server
+# CLAUDE.md — Project Context for FDE-AI-Take-Home-GargiBhise
 
 Source of truth for Claude Code. Read this before doing anything.
 
@@ -178,7 +178,7 @@ Key commits (recent):
 
 ```bash
 conda activate
-cd D:/nexla-mcp-server
+cd D:/FDE-AI-Take-Home-GargiBhise
 pip install -r requirements.txt
 python -m src.server      # start MCP server
 python -m eval.eval       # run evaluation
