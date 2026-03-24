@@ -27,6 +27,12 @@ metadata.json
 .vscode/
 .idea/
 
+# Claude Code workspace
+.claude/
+
+# Assignment PDF (not part of deliverable)
+Nexla_Take_home_Forward_Deployed_Engineer.pdf
+
 # OS
 .DS_Store
 Thumbs.db
