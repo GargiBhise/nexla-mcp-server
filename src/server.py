@@ -22,3 +22,18 @@ def startup():
     print("Starting document ingestion...")
     index, chunks, metadata = ingest_documents(DATA_DIR)
     print(f"Server ready. {len(chunks)} chunks indexed from {len(metadata)} documents.")
+
+
+@mcp.tool()
+def query_documents(question: str) -> dict:
+    """
+    Ask a natural language question across all indexed PDF documents.
+    Returns a grounded answer with source attribution (filename and page).
+    """
+    # Find the most relevant chunks using FAISS
+    retrieved = retrieve(question, index, chunks)
+
+    # Generate a grounded answer using Claude
+    result = generate_answer(question, retrieved)
+
+    return result
