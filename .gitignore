@@ -17,8 +17,8 @@ build/
 venv/
 env/
 
-# ChromaDB index (rebuilt at startup)
-chroma_db/
+# FAISS index (rebuilt at startup)
+faiss_index/
 
 # Metadata cache
 metadata.json
