@@ -71,3 +71,20 @@ def _chunk_text(text: str, filename: str, page: int) -> list[dict]:
         start += CHUNK_SIZE - CHUNK_OVERLAP
 
     return chunks
+
+
+def _embed_chunks(chunks: list[dict]) -> np.ndarray:
+    """Generate embeddings for all chunks using OpenAI API."""
+    # Extract just the text from each chunk
+    texts = [chunk["text"] for chunk in chunks]
+
+    # Call OpenAI embeddings API in a single batch request
+    response = client.embeddings.create(
+        model=EMBEDDING_MODEL,
+        input=texts,
+    )
+
+    # Convert response to numpy array for FAISS
+    embeddings = np.array([item.embedding for item in response.data], dtype=np.float32)
+
+    return embeddings
