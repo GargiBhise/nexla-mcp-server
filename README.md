@@ -14,8 +14,8 @@ An MCP (Model Context Protocol) server that ingests PDF documents, indexes their
 ### Step 1: Clone and create virtual environment
 
 ```bash
-git clone https://github.com/GargiBhise/nexla-mcp-server.git
-cd nexla-mcp-server
+git clone https://github.com/GargiBhise/FDE-AI-Take-Home-GargiBhise.git
+cd FDE-AI-Take-Home-GargiBhise
 
 # Create and activate a virtual environment
 python -m venv venv
