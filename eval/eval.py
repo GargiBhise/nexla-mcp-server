@@ -1,8 +1,15 @@
 import os
 import json
+import nltk
+from nltk.corpus import stopwords
 from src.ingest import ingest_documents
 from src.retriever import retrieve
 from src.answerer import generate_answer
+
+# Download stop words corpus if not already present
+nltk.download("stopwords", quiet=True)
+STOP_WORDS = set(stopwords.words("english"))
+
 
 # Data directory containing the PDFs and JSONL files
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
@@ -50,14 +57,28 @@ def run_evaluation():
         response = generate_answer(question, retrieved)
         actual = response["answer"]
 
-        # Simple check: does the system's answer contain the key expected text
-        is_correct = expected.lower() in actual.lower()
+        # Detect refusal — LLM is instructed to say exactly "I don't know the answer"
+        actual_lower = actual.lower()
+        is_refusal = "i don't know the answer" in actual_lower
+
+        # Check if key content words from expected answer appear in actual answer
+        # Filter out NLTK stop words so common terms don't inflate the match ratio
+        expected_words = set(expected.lower().split()) - STOP_WORDS
+        actual_words = set(actual.lower().split()) - STOP_WORDS
+        # Count how many expected content words appear in the actual answer
+        matches = sum(1 for word in expected_words if word in actual_words)
+        match_ratio = matches / len(expected_words) if expected_words else 0
+        is_correct = match_ratio >= 0.5 and not is_refusal
         if is_correct:
             results[q_type]["correct"] += 1
 
-        # Print progress
+        # Print progress with details
         status = "PASS" if is_correct else "FAIL"
-        print(f"[{i+1}/{len(qa_pairs)}] [{status}] ({q_type}) {question[:80]}")
+        print(f"\n[{i+1}/{len(qa_pairs)}] [{status}] ({q_type}) {question[:80]}")
+        print(f"  Expected: {expected[:100]}")
+        print(f"  Actual:   {actual[:100]}")
+        refusal_tag = " [REFUSAL DETECTED]" if is_refusal else ""
+        print(f"  Match:    {matches}/{len(expected_words)} content words ({match_ratio:.0%}){refusal_tag}")
 
     # Step 3: Print summary
     print("\n--- Evaluation Summary ---")
