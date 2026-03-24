@@ -17,3 +17,13 @@ EMBEDDING_MODEL = "text-embedding-3-small"
 # Chunk size and overlap in characters
 CHUNK_SIZE = 1500
 CHUNK_OVERLAP = 200
+
+
+def _find_pdfs(data_dir: str) -> list[str]:
+    """Recursively find all PDF files in the data directory."""
+    pdf_paths = []
+    for root, _, files in os.walk(data_dir):
+        for file in files:
+            if file.endswith(".pdf"):
+                pdf_paths.append(os.path.join(root, file))
+    return pdf_paths
